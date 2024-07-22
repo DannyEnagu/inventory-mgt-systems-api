@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  api:
+    container_name: invent_mgt_sys_api
+    build: .
+    restart: always
+    ports:
+      - "5000:5000" # Host machine:Container -> port mapping
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+
+  db:
+    container_name: invent_mgt_sys_db
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432" # Host machine:Container -> port mapping
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data: {}
