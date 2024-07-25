@@ -1,9 +1,122 @@
+// Prisma schema file
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid()) @db.Uuid
+  username  String    @unique
+  email     String    @unique
+  password  String
+  role      UserRole?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Order     Order[]
+  Customer  Customer?
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+model Category {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[] @relation("CategoryProducts")
+}
+
+model Supplier {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  contactPerson String
+  email         String?
+  phone         String?
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[] @relation("SupplierProducts")
+}
+
+model Product {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  price       Float
+  status      ProductStatus
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  categoryId  String        @db.Uuid
+  supplierId  String?        @db.Uuid
+
+  category     Category       @relation("CategoryProducts", fields: [categoryId], references: [id])
+  supplier     Supplier?       @relation("SupplierProducts", fields: [supplierId], references: [id])
+  inventory    Inventory[]
+  OrderProduct OrderProduct[]
+}
+
+enum ProductStatus {
+  IN_STOCK
+  OUT_OF_STOCK
+  DISCONTINUED
+}
+
+model Inventory {
+  id           String   @id @default(uuid()) @db.Uuid
+  productId    String   @db.Uuid
+  quantity     Int
+  variation    Json? // Use JSON to store variations like color, size, etc.  
+  location     String?
+  lastUpdated  DateTime @updatedAt
+  reorderLevel Int?
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @db.Uuid
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  status    OrderStatus
+  products  OrderProduct[] // Potential relation for items in the order  
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model OrderProduct {  
+  id        String @id @default(uuid()) @db.Uuid  
+  orderId   String @db.Uuid  
+  productId String @db.Uuid  
+  quantity  Int  
+  price     Float  
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade) // Optional: Add cascade here too  
+  product Product @relation(fields: [productId], references: [id])  
+}  
+
+model Customer {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  phoneNumber String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
