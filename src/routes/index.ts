@@ -1,16 +1,17 @@
 import express from 'express';
 
 const router = express.Router({ mergeParams: true });
+const testRoute = require('./api');
+const productRoute = require('./product');
+const categoryRoute = require('./category');
+const userRoute = require('./user');
+const orderRoute = require('./order');
 
-// Import routes from other files
-const routes = [
-    {path: '/', router: require('./api') as express.Router},
-    // {path: '/auth', router: require('./auth').default},
-];
 
-// Attach routes to router
-routes.forEach((route) => {
-    router.use(route.path, route.router);
-});
+router.use(testRoute);
+router.use(productRoute);
+router.use(categoryRoute);
+router.use(userRoute);
+router.use(orderRoute);
 
-export default routes;
+module.exports = router;
