@@ -6,6 +6,7 @@ require('dotenv').config();
 // Local imports
 const openRoutes = require('./routes/auth');
 const authRoutes = require('./routes');
+const verifyBearerToken = require('./helpers/verify-token');
 
 const prisma = new PrismaClient();
 const app = express();
@@ -13,8 +14,8 @@ const app = express();
 app.use(express.json());
 
 app.use(cors());
-app.use('/api/v1', authRoutes);
-app.use('api/auth', openRoutes);
+app.use('/api/v1', verifyBearerToken, authRoutes);
+app.use('/api/auth', openRoutes);
 
 const PORT = process.env.PORT || 5002
 
